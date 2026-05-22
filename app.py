@@ -71,7 +71,7 @@ model = load_model()
 
 if model is None:
     st.error(
-        "⚠️ No trained model found at `checkpoints/best_model.pth`. "
+        "No trained model found at `checkpoints/best_model.pth`. "
         "Run `python train.py` first, then restart the app."
     )
     st.stop()
@@ -95,8 +95,8 @@ if uploaded:
         with st.spinner("Analysing image..."):
             prob = run_inference(model, image)
 
-        is_ai    = prob > THRESHOLD
-        label    = "🤖 AI Generated" if is_ai else "📷 Real Photo"
+        is_ai = prob < THRESHOLD
+        label = "🤖 AI Generated" if is_ai else "📷 Real Photo"
         conf_pct = max(prob, 1 - prob) * 100
 
         st.subheader("Result")
@@ -123,6 +123,6 @@ if uploaded:
 
         # raw probability (collapsed by default)
         with st.expander("Raw scores"):
-            st.write(f"AI probability : `{prob:.4f}`")
-            st.write(f"Real probability: `{1 - prob:.4f}`")
+            st.write(f"Real probability: `{prob:.4f}`")
+            st.write(f"AI probability: `{1 - prob:.4f}`")
             st.write(f"Decision threshold: `{THRESHOLD}`")
