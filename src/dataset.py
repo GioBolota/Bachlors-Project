@@ -135,3 +135,73 @@ def get_loaders(data_dir: str = "data",
 
     print(f"Train: {len(train_ds)} | Val: {len(val_ds)} | Test: {len(test_ds)}")
     return train_loader, val_loader, test_loader
+
+
+
+
+"""
+File: src/dataset.py
+Add this alongside existing code
+"""
+
+def get_loaders_multi_resolution(
+    data_dir: str = "data",
+    batch_size: int = 32,
+    fft_dim: int = 256,
+    num_workers: int = 0,
+    max_samples: int = None,
+    input_resolution: int = 224  # NEW: configurable resolution
+):
+    """
+    Returns (train_loader, val_loader, test_loader) at specified resolution.
+    
+    CHANGE: input_resolution parameter allows training/finetuning at 
+    different resolutions (128, 160, 224, 288, 320, 384, etc.)
+    """
+    
+    import torch
+    from torchvision import transforms
+    from torch.utils.data import DataLoader, Subset
+    import os
+    
+    # Create resolution-specific transforms
+    TRAIN_TRANSFORM = transforms.Compose([
+        transforms.Resize((input_resolution, input_resolution)),  # CHANGED
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(10),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.1),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406],
+                           [0.229, 0.224, 0.225]),
+    ])
+    
+    EVAL_TRANSFORM = transforms.Compose([
+        transforms.Resize((input_resolution, input_resolution)),  # CHANGED
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406],
+                           [0.229, 0.224, 0.225]),
+    ])
+    
+    # Load datasets with new transforms
+    train_ds = AIImageDataset(os.path.join(data_dir, "train"), TRAIN_TRANSFORM, fft_dim)
+    val_ds   = AIImageDataset(os.path.join(data_dir, "val"),   EVAL_TRANSFORM,  fft_dim)
+    test_ds  = AIImageDataset(os.path.join(data_dir, "test"),  EVAL_TRANSFORM,  fft_dim)
+    
+    if max_samples:
+        train_ds = Subset(train_ds, range(min(max_samples, len(train_ds))))
+        val_ds   = Subset(val_ds,   range(min(max_samples // 9, len(val_ds))))
+    
+    pin = torch.cuda.is_available()
+    
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True,
+                             num_workers=0, pin_memory=pin)
+    val_loader   = DataLoader(val_ds,   batch_size=batch_size, shuffle=False,
+                             num_workers=0, pin_memory=pin)
+    test_loader  = DataLoader(test_ds,  batch_size=batch_size, shuffle=False,
+                             num_workers=0, pin_memory=pin)
+    
+    print(f"Loaders created for resolution {input_resolution}×{input_resolution}")
+    print(f"Train: {len(train_ds)} | Val: {len(val_ds)} | Test: {len(test_ds)}")
+    
+    return train_loader, val_loader, test_loader
+

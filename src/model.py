@@ -87,7 +87,7 @@ def save_checkpoint(model: FusionDetector, path: str, metadata: dict = None):
 def load_checkpoint(path: str, fft_feature_dim: int = 256,
                     device: str = "cpu") -> FusionDetector:
     model = FusionDetector(fft_feature_dim=fft_feature_dim)
-    payload = torch.load(path, map_location=device, weights_only=True)
+    payload = torch.load(path, map_location=device, weights_only=False)
     model.load_state_dict(payload["model_state"])
     model.to(device)
     model.eval()
