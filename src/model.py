@@ -9,20 +9,19 @@ from torchvision import models
 
 class FusionDetector(nn.Module):
     """
-    Two-branch architecture:
-      1. CNN branch  — ResNet-50 pretrained on ImageNet (outputs 2048-d vector)
-      2. FFT branch  — MLP that processes frequency-domain features (outputs 128-d vector)
-    Both are concatenated and passed through a classification head → sigmoid probability.
+    architecture:
+      1. CNN branch  — ResNet-50 pretrained on ImageNet, outputs 2048-d vector
+      2. FFT branch  — MLP that processes frequency-domain features, outputs 128-d vector
+    Both are concatenated and passed through a classification head and output sigmoid probability.
 
     Output > 0.5  →  AI Generated
     Output <= 0.5 →  Real
     """
-
     def __init__(self, fft_feature_dim: int = 256, freeze_cnn_epochs: int = 3):
         super().__init__()
         self.freeze_cnn_epochs = freeze_cnn_epochs
 
-        # CNN branch (ResNet-50, strip final FC layer)
+        # CNN branch (ResNet-50)
         resnet = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V1)
         self.cnn_branch = nn.Sequential(*list(resnet.children())[:-1])  # → (B, 2048, 1, 1)
 
@@ -46,7 +45,7 @@ class FusionDetector(nn.Module):
             nn.Sigmoid(),
         )
 
-    # freeze / unfreeze CNN backbone
+    # freeze and unfreeze CNN backbone
 
     def freeze_cnn(self):
         """Freeze ResNet backbone — train only the FFT branch and classifier head."""

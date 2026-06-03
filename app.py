@@ -1,5 +1,5 @@
 """
-app.py — Streamlit web interface for the AI Image Detector.
+app.py used for Streamlit web interface for the AI Image Detector.
  
 Usage:
     streamlit run app.py
@@ -23,7 +23,7 @@ import os
  
 FFT_DIM         = 256
 DEVICE          = "cuda" if torch.cuda.is_available() else "cpu"
-THRESHOLD       = 0.5
+THRESHOLD       = 0.1
  
 # Available models
 AVAILABLE_MODELS = {
@@ -32,7 +32,7 @@ AVAILABLE_MODELS = {
 }
  
  
-#model loading (cached so it only loads once)
+#model loading
  
 @st.cache_resource
 def load_model(checkpoint_path):
@@ -80,7 +80,7 @@ st.title("🔍 AI Image Detector")
 st.caption("Upload an image to detect whether it is a real photograph or AI-generated content.")
 st.divider()
  
-# MODEL SELECTION (NEW)
+# MODEL SELECTION
 st.subheader("Select Detection Model")
  
 available_options = [name for name, (path, _) in AVAILABLE_MODELS.items() 
@@ -93,7 +93,7 @@ if not available_options:
 selected_model = st.radio("Choose a model:", available_options, index=1 if len(available_options) > 1 else 0)
 checkpoint_path, resolution = AVAILABLE_MODELS[selected_model]
  
-# Load model
+# load model
 model = load_model(checkpoint_path)
  
 if model is None:
@@ -128,7 +128,7 @@ if uploaded:
         st.subheader("Result")
         st.markdown(f"### {label}")
  
-        # confidence bar — coloured by result
+        # confidence bar coloured by result
         bar_color = "#e74c3c" if is_ai else "#2ecc71"
         st.markdown(
             f"""
@@ -143,13 +143,13 @@ if uploaded:
         )
  
         st.divider()
-        st.caption(f"**Model:** {selected_model} | **Processing at:** {resolution}×{resolution}")
-        st.caption("**How it works:** The detector combines a ResNet-50 CNN "
-                   "with frequency-domain (FFT) analysis to identify artefacts "
-                   "left by generative models.")
+        # st.caption(f"**Model:** {selected_model} | **Processing at:** {resolution}×{resolution}")
+        # st.caption("**How it works:** The detector combines a ResNet-50 CNN "
+        #            "with frequency-domain (FFT) analysis to identify artefacts "
+        #            "left by generative models.")
  
-        # raw probability (collapsed by default)
+        # raw probability
         with st.expander("Raw scores"):
             st.write(f"Real probability: `{prob:.4f}`")
             st.write(f"AI probability: `{1 - prob:.4f}`")
-            st.write(f"Decision threshold: `{THRESHOLD}`")
+            st.write(f"Confidence: `{conf_pct}`")

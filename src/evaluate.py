@@ -1,5 +1,5 @@
 """
-evaluate.py — Evaluate a trained FusionDetector on the test set.
+evaluate.py used to evaluate a trained FusionDetector on the test set.
 
 Usage:
     python evaluate.py
@@ -76,7 +76,7 @@ def main():
         data_dir=args.data_dir,
         batch_size=args.batch_size,
         fft_dim=args.fft_dim,
-        num_workers=0,    # safer for evaluation on CPU
+        num_workers=0,
     )
 
     print("\nRunning evaluation on test set...")
